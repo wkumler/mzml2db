@@ -1,0 +1,16 @@
+Package: mzml2db
+Type: Package
+Title: Convert mzML files to various databases
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "William", "Kumler",
+      email = "wkumler@uw.edu",
+      role = c("aut", "cre")
+    )
+  )
+Description: Performs the conversion of open-source mass-spectrometry files
+  (mzMLs) into relational databases (e.g. SQLite, Postgres, DuckDB).
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
