@@ -74,14 +74,14 @@ mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name,
                     overwrite_ok = FALSE, scan_batch_size=10000){
   sax_env <- new.env()
 
-  sax_env$engine <- dbConnect(db_engine, db_name)
+  sax_env$engine <- DBI::dbConnect(db_engine, db_name)
   sax_env$scan_batch_size <- scan_batch_size
   empty_MS1 <- data.frame(filename=character(), scan_idx=numeric(), rt=numeric(), mz=numeric(), int=numeric())
-  dbWriteTable(sax_env$engine, "MS1", empty_MS1, overwrite=overwrite_ok)
+  DBI::dbWriteTable(sax_env$engine, "MS1", empty_MS1, overwrite=overwrite_ok)
   empty_MS2 <- data.frame(filename=character(), scan_idx=numeric(), rt=numeric(), premz=numeric(),
                           fragmz=numeric(), int=numeric(), voltage=numeric())
-  dbWriteTable(sax_env$engine, "MS2", empty_MS2, overwrite=overwrite_ok)
-  on.exit(dbDisconnect(sax_env$engine))
+  DBI::dbWriteTable(sax_env$engine, "MS2", empty_MS2, overwrite=overwrite_ok)
+  on.exit(DBI::dbDisconnect(sax_env$engine))
 
   sax_env$MS1_scan_data <- list()
   sax_env$MS2_scan_data <- list()
@@ -174,13 +174,13 @@ endElemParser <- function(name, attrs, sax_env){
       if(length(sax_env$MS1_scan_data)>0){
         new_MS1_data <- do.call(what = rbind, args = sax_env$MS1_scan_data)
         new_MS1_data$filename <- sax_env$filename
-        dbWriteTable(sax_env$engine, "MS1", new_MS1_data, append = TRUE)
+        DBI::dbWriteTable(sax_env$engine, "MS1", new_MS1_data, append = TRUE)
         sax_env$MS1_scan_data <- list()
       }
       if(length(sax_env$MS2_scan_data)>0){
         new_MS2_data <- do.call(what = rbind, args = sax_env$MS2_scan_data)
         new_MS2_data$filename <- sax_env$filename
-        dbWriteTable(sax_env$engine, "MS2", new_MS2_data, append = TRUE)
+        DBI::dbWriteTable(sax_env$engine, "MS2", new_MS2_data, append = TRUE)
         sax_env$MS2_scan_data <- list()
       }
     }
@@ -190,13 +190,13 @@ endElemParser <- function(name, attrs, sax_env){
     if(length(sax_env$MS1_scan_data)>0){
       new_MS1_data <- do.call(what = rbind, args = sax_env$MS1_scan_data)
       new_MS1_data$filename <- sax_env$filename
-      dbWriteTable(sax_env$engine, "MS1", new_MS1_data, append = TRUE)
+      DBI::dbWriteTable(sax_env$engine, "MS1", new_MS1_data, append = TRUE)
       sax_env$MS1_scan_data <- list()
     }
     if(length(sax_env$MS2_scan_data)>0){
       new_MS2_data <- do.call(what = rbind, args = sax_env$MS2_scan_data)
       new_MS2_data$filename <- sax_env$filename
-      dbWriteTable(sax_env$engine, "MS2", new_MS2_data, append = TRUE)
+      DBI::dbWriteTable(sax_env$engine, "MS2", new_MS2_data, append = TRUE)
       sax_env$MS2_scan_data <- list()
     }
   }

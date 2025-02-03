@@ -14,4 +14,14 @@ Description: Performs the conversion of open-source mass-spectrometry files
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Imports: 
+    XML, 
+    DBI,
+    base64enc
+Suggests:
+    ggplot2,
+    dplyr,
+    dbplyr,
+    RSQLite,
+    duckdb
 RoxygenNote: 7.3.1
