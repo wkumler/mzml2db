@@ -95,7 +95,7 @@ mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name,
 
   sapply(ms_files, function(ms_file_i){
     sax_env$filename <- basename(ms_file_i)
-    xmlEventParse(ms_file_i, handlers = sax_handlers)
+    XML::xmlEventParse(ms_file_i, handlers = sax_handlers)
   })
 
   db_name
@@ -106,7 +106,7 @@ startElemParser <- function(name, attrs, sax_env){
       sax_env$scan_ms_level <- as.numeric(attrs["value"])
     }
     if(attrs["name"] == "scan start time"){
-      sax_env$scan_rt <- as.numeric(attrs["value"])
+      sax_env$scan_rt <- as.numeric(attrs["value"])/60
     }
     if(attrs["name"] == "isolation window target m/z"){
       sax_env$scan_premz <- as.numeric(attrs["value"])
