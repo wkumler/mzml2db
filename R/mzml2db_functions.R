@@ -70,17 +70,16 @@ library(DBI)
 #' dbDisconnect(conn)
 #' unlink("minidata.duckdb")
 #' unlink("minidata.sqlite")
-mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name,
-                    overwrite_ok = FALSE, scan_batch_size=10000){
+mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name, scan_batch_size=10000, ...){
   sax_env <- new.env()
 
   sax_env$engine <- DBI::dbConnect(db_engine, db_name)
   sax_env$scan_batch_size <- scan_batch_size
   empty_MS1 <- data.frame(filename=character(), scan_idx=numeric(), rt=numeric(), mz=numeric(), int=numeric())
-  DBI::dbWriteTable(sax_env$engine, "MS1", empty_MS1, overwrite=overwrite_ok)
+  DBI::dbWriteTable(sax_env$engine, "MS1", empty_MS1, ...)
   empty_MS2 <- data.frame(filename=character(), scan_idx=numeric(), rt=numeric(), premz=numeric(),
                           fragmz=numeric(), int=numeric(), voltage=numeric())
-  DBI::dbWriteTable(sax_env$engine, "MS2", empty_MS2, overwrite=overwrite_ok)
+  DBI::dbWriteTable(sax_env$engine, "MS2", empty_MS2, ...)
   on.exit(DBI::dbDisconnect(sax_env$engine))
 
   sax_env$MS1_scan_data <- list()
