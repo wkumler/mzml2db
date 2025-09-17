@@ -169,7 +169,7 @@ endElemParser <- function(name, attrs, sax_env){
                               voltage = sax_env$scan_voltage)
       sax_env$MS2_scan_data <- c(sax_env$MS2_scan_data, list(scan_data))
     }
-    if((length(sax_env$MS1_scan_data) + length(sax_env$MS2_scan_data)) > 10000){
+    if((length(sax_env$MS1_scan_data) + length(sax_env$MS2_scan_data)) > sax_env$scan_batch_size){
       print("Writing batch to database")
       if(length(sax_env$MS1_scan_data)>0){
         new_MS1_data <- do.call(what = rbind, args = sax_env$MS1_scan_data)
