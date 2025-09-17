@@ -70,7 +70,7 @@ library(DBI)
 #' dbDisconnect(conn)
 #' unlink("minidata.duckdb")
 #' unlink("minidata.sqlite")
-mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name,
+mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name, verbosity=NULL,
                     scan_batch_size=10000, sort_by=NULL, ...){
   sax_env <- new.env()
 
@@ -94,6 +94,10 @@ mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name,
       sax_env$sort_by <- NULL
     }
   }
+  if(is.null(verbosity)){
+    verbosity <- ifelse(length(ms_files)==1, 2, 1)
+  }
+  sax_env$verbosity <- verbosity
 
   sax_handlers <- list(
     startElement = function(name, attrs) startElemParser(name, attrs, sax_env),
@@ -101,11 +105,25 @@ mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name,
     endElement = function(name, attrs) endElemParser(name, attrs, sax_env)
   )
 
-  sapply(ms_files, function(ms_file_i){
+  if(verbosity>0){
+    if(length(ms_files)>=2){
+      pb <- txtProgressBar(min = 0, max = length(ms_files), style = 3)
+    }
+    start_time <- Sys.time()
+  }
+  for(i in seq_along(ms_files)){
+    ms_file_i <- ms_files[i]
     sax_env$filename <- basename(ms_file_i)
     XML::xmlEventParse(ms_file_i, handlers = sax_handlers)
-  })
-
+    if(verbosity>0 & length(ms_files)>=2){
+      setTxtProgressBar(pb, i)
+      cat("\n")
+    }
+  }
+  if(verbosity>0){
+    time_total <- round(difftime(Sys.time(), start_time), digits = 2)
+    cat("Total time:", time_total, units(time_total), "\n")
+  }
   db_name
 }
 startElemParser <- function(name, attrs, sax_env){
