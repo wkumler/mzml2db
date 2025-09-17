@@ -70,7 +70,8 @@ library(DBI)
 #' dbDisconnect(conn)
 #' unlink("minidata.duckdb")
 #' unlink("minidata.sqlite")
-mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name, scan_batch_size=10000, ...){
+mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name,
+                    scan_batch_size=10000, sort_by=NULL, ...){
   sax_env <- new.env()
 
   sax_env$engine <- DBI::dbConnect(db_engine, db_name)
@@ -85,6 +86,14 @@ mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name, scan_batch_si
   sax_env$MS1_scan_data <- list()
   sax_env$MS2_scan_data <- list()
   sax_env$parsing_binary <- FALSE
+  if(!is.null(sort_by)){
+    if(sort_by%in%c("mz", "rt", "int", "scan_idx")){
+      sax_env$sort_by <- sort_by
+    } else {
+      warning(paste("Sorting by", sort_by, "not supported, ignoring."))
+      sort_by <- NULL
+    }
+  }
 
   sax_handlers <- list(
     startElement = function(name, attrs) startElemParser(name, attrs, sax_env),
@@ -172,12 +181,23 @@ endElemParser <- function(name, attrs, sax_env){
       print("Writing batch to database")
       if(length(sax_env$MS1_scan_data)>0){
         new_MS1_data <- do.call(what = rbind, args = sax_env$MS1_scan_data)
+        if(!is.null(sax_env$sort_by)){
+          new_MS1_data <- new_MS1_data[order(new_MS1_data[[sax_env$sort_by]])]
+        }
         new_MS1_data$filename <- sax_env$filename
         DBI::dbWriteTable(sax_env$engine, "MS1", new_MS1_data, append = TRUE)
         sax_env$MS1_scan_data <- list()
       }
       if(length(sax_env$MS2_scan_data)>0){
         new_MS2_data <- do.call(what = rbind, args = sax_env$MS2_scan_data)
+        if(!is.null(sax_env$sort_by)){
+          if(sax_env$sort_by=="mz"){
+            # Assume sorting by mz for MS2 data means premz, allow specifying fragmz explicitly
+            new_MS1_data <- new_MS1_data[order(new_MS1_data[["premz"]])]
+          } else {
+            new_MS1_data <- new_MS1_data[order(new_MS1_data[[sax_env$sort_by]])]
+          }
+        }
         new_MS2_data$filename <- sax_env$filename
         DBI::dbWriteTable(sax_env$engine, "MS2", new_MS2_data, append = TRUE)
         sax_env$MS2_scan_data <- list()
