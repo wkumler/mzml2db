@@ -8,8 +8,10 @@ mzml2db(
   ms_files,
   db_engine = duckdb::duckdb(),
   db_name,
-  overwrite_ok = FALSE,
-  scan_batch_size = 10000
+  verbosity = NULL,
+  scan_batch_size = 10000,
+  sort_by = NULL,
+  ...
 )
 }
 \arguments{
@@ -22,14 +24,27 @@ duckdb::duckdb(), or RPostgreSQL::PostgreSQL()}
 
 \item{db_name}{The name of the database you'd like to write out to}
 
-\item{overwrite_ok}{Ok to overwrite an existing database with the same name
-if it exists? Defaults to FALSE for safety reasons}
+\item{verbosity}{Three levels of processing output to the R console are
+available, with increasing verbosity corresponding to higher integers. A
+verbosity of zero means that no output will be produced, useful when
+wrapping within larger functions. A verbosity of 1 will produce a progress
+bar using base R's txtProgressBar function. A verbosity of 2 or higher will
+produce timing output for each individual file read in. The default, NULL,
+will select between 1 and 2 depending on the number of files being read: if
+a single file, verbosity is set to 2; if multiple files, verbosity is set
+to 1.}
 
 \item{scan_batch_size}{Some files are too large to read into memory all at
 once (looking at you, Thermo Astral data). This argument controls the number
 of scans that should be read into memory before writing them into the
 database. If the function begins to hang or consume too much memory, reduce
 this value.}
+
+\item{sort_by}{Column name for sorting batches by when written to database.
+Can speed up retrieval by a single column (e.g. mz) but will create a penalty
+for the others as they then become essentially randomized. Only really
+relevant for DBs with range indexes (e.g. DuckDB). The default, NULL, does
+not perform sorting (and thereby basically indexes by filename and scan_idx).}
 }
 \value{
 db_name, if successful
