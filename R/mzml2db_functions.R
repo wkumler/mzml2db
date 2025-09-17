@@ -131,7 +131,11 @@ startElemParser <- function(name, attrs, sax_env){
       sax_env$scan_ms_level <- as.numeric(attrs["value"])
     }
     if(attrs["name"] == "scan start time"){
-      sax_env$scan_rt <- as.numeric(attrs["value"])/60
+      if(attrs["unitName"]=="minute"){
+        sax_env$scan_rt <- as.numeric(attrs["value"])
+      } else {
+        sax_env$scan_rt <- as.numeric(attrs["value"])/60
+      }
     }
     if(attrs["name"] == "isolation window target m/z"){
       sax_env$scan_premz <- as.numeric(attrs["value"])
