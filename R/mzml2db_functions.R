@@ -117,12 +117,11 @@ mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name, verbosity=NUL
     XML::xmlEventParse(ms_file_i, handlers = sax_handlers)
     if(verbosity>0 & length(ms_files)>=2){
       setTxtProgressBar(pb, i)
-      cat("\n")
     }
   }
   if(verbosity>0){
     time_total <- round(difftime(Sys.time(), start_time), digits = 2)
-    cat("Total time:", time_total, units(time_total), "\n")
+    cat("\nTotal time:", time_total, units(time_total), "\n")
   }
   db_name
 }
@@ -157,7 +156,9 @@ startElemParser <- function(name, attrs, sax_env){
     sax_env$scan_idx <- as.numeric(attrs["index"])
     # print(paste0("Starting scan #", sax_env$scan_idx))
     if(sax_env$scan_idx %% 1000 == 0){
-      print(paste0("Starting scan #", sax_env$scan_idx))
+      if(sax_env$verbosity>1){
+        print(paste0("Starting scan #", sax_env$scan_idx))
+      }
     }
   }
 }
@@ -196,7 +197,9 @@ endElemParser <- function(name, attrs, sax_env){
       sax_env$MS2_scan_data <- c(sax_env$MS2_scan_data, list(scan_data))
     }
     if((length(sax_env$MS1_scan_data) + length(sax_env$MS2_scan_data)) > sax_env$scan_batch_size){
-      print("Writing batch to database")
+      if(sax_env$verbosity>1){
+        print("Writing batch to database")
+      }
       if(length(sax_env$MS1_scan_data)>0){
         new_MS1_data <- do.call(what = rbind, args = sax_env$MS1_scan_data)
         if(!is.null(sax_env$sort_by)){
@@ -223,7 +226,9 @@ endElemParser <- function(name, attrs, sax_env){
     }
   }
   if(name == "mzML"){
-    print("Writing final data to database")
+    if(sax_env$verbosity>1){
+      print("Writing final data to database")
+    }
     if(length(sax_env$MS1_scan_data)>0){
       new_MS1_data <- do.call(what = rbind, args = sax_env$MS1_scan_data)
       if(!is.null(sax_env$sort_by)){
