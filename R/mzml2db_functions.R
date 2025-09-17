@@ -91,7 +91,7 @@ mzml2db <- function(ms_files, db_engine=duckdb::duckdb(), db_name,
       sax_env$sort_by <- sort_by
     } else {
       warning(paste("Sorting by", sort_by, "not supported, ignoring."))
-      sort_by <- NULL
+      sax_env$sort_by <- NULL
     }
   }
 
@@ -182,7 +182,7 @@ endElemParser <- function(name, attrs, sax_env){
       if(length(sax_env$MS1_scan_data)>0){
         new_MS1_data <- do.call(what = rbind, args = sax_env$MS1_scan_data)
         if(!is.null(sax_env$sort_by)){
-          new_MS1_data <- new_MS1_data[order(new_MS1_data[[sax_env$sort_by]])]
+          new_MS1_data <- new_MS1_data[order(new_MS1_data[[sax_env$sort_by]], )]
         }
         new_MS1_data$filename <- sax_env$filename
         DBI::dbWriteTable(sax_env$engine, "MS1", new_MS1_data, append = TRUE)
@@ -193,9 +193,9 @@ endElemParser <- function(name, attrs, sax_env){
         if(!is.null(sax_env$sort_by)){
           if(sax_env$sort_by=="mz"){
             # Assume sorting by mz for MS2 data means premz, allow specifying fragmz explicitly
-            new_MS1_data <- new_MS1_data[order(new_MS1_data[["premz"]])]
+            new_MS1_data <- new_MS1_data[order(new_MS1_data[["premz"]], )]
           } else {
-            new_MS1_data <- new_MS1_data[order(new_MS1_data[[sax_env$sort_by]])]
+            new_MS1_data <- new_MS1_data[order(new_MS1_data[[sax_env$sort_by]], )]
           }
         }
         new_MS2_data$filename <- sax_env$filename
@@ -208,12 +208,23 @@ endElemParser <- function(name, attrs, sax_env){
     print("Writing final data to database")
     if(length(sax_env$MS1_scan_data)>0){
       new_MS1_data <- do.call(what = rbind, args = sax_env$MS1_scan_data)
+      if(!is.null(sax_env$sort_by)){
+        new_MS1_data <- new_MS1_data[order(new_MS1_data[[sax_env$sort_by]]), ]
+      }
       new_MS1_data$filename <- sax_env$filename
       DBI::dbWriteTable(sax_env$engine, "MS1", new_MS1_data, append = TRUE)
       sax_env$MS1_scan_data <- list()
     }
     if(length(sax_env$MS2_scan_data)>0){
       new_MS2_data <- do.call(what = rbind, args = sax_env$MS2_scan_data)
+      if(!is.null(sax_env$sort_by)){
+        if(sax_env$sort_by=="mz"){
+          # Assume sorting by mz for MS2 data means premz, allow specifying fragmz explicitly
+          new_MS2_data <- new_MS2_data[order(new_MS2_data[["premz"]]), ]
+        } else {
+          new_MS2_data <- new_MS2_data[order(new_MS2_data[[sax_env$sort_by]]), ]
+        }
+      }
       new_MS2_data$filename <- sax_env$filename
       DBI::dbWriteTable(sax_env$engine, "MS2", new_MS2_data, append = TRUE)
       sax_env$MS2_scan_data <- list()
