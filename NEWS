@@ -1,0 +1,17 @@
+
+## 0.1.1
+
+Improvements:
+
+  - Allows for indexing/sorting upon DB write with sort_by argument
+  - Adds a progress bar and finer control over verbosity information
+
+Bugfixes:
+
+  - Now respects the scan_batch_size argument
+  - Retention times are not assumed to be in seconds anymore but are always
+    written out in minutes
+
+## 0.1.0
+
+The original release.

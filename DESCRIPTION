@@ -1,7 +1,7 @@
 Package: mzml2db
 Type: Package
 Title: Convert mzML files to various databases
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person(
       "William", "Kumler",
